@@ -14,6 +14,31 @@ resource "aws_vpc" "main" {
   }
 }
 
+## Create Security groups
+resource "aws_security_group" "allow_http" {
+  name        = "allow_http"
+  description = "Allow http inbound traffic"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description = "HTTP from internet"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Environment = var.target_env
+    Name = var.stack_name
+  }
+}
+
 # Create IGW for NAT GWs
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
@@ -140,6 +165,7 @@ resource "aws_lb" "ecs_frontend_alb" {
   name               = "myALB"
   internal           = false
   load_balancer_type = "application"
+  security_groups    = [aws_security_group.allow_http.id]
   subnets            = [aws_subnet.public_subnet_1.id, aws_subnet.public_subnet_2.id]
 
   tags = {
@@ -170,11 +196,11 @@ resource "aws_lb_listener" "ecs_cluster_front_end" {
 }
 resource "aws_lb_target_group_attachment" "ecs_cluster_attach_gw1" {
   target_group_arn = aws_lb_target_group.ecs_cluster_tg.arn
-  target_id        = aws_nat_gateway.pgw_1.public_ip
+  target_id        = aws_nat_gateway.pgw_1.private_ip
   port             = 80
 }
 resource "aws_lb_target_group_attachment" "ecs_cluster_attach_gw2" {
   target_group_arn = aws_lb_target_group.ecs_cluster_tg.arn
-  target_id        = aws_nat_gateway.pgw_2.public_ip
+  target_id        = aws_nat_gateway.pgw_2.private_ip
   port             = 80
 }
