@@ -204,3 +204,12 @@ resource "aws_lb_target_group_attachment" "ecs_cluster_attach_gw2" {
   target_id        = aws_nat_gateway.pgw_2.private_ip
   port             = 80
 }
+
+## Outputs
+
+output "pub_sub_1" {
+  value = aws_subnet.public_subnet_1.id
+}
+output "pub_sub_2" {
+  value = aws_subnet.public_subnet_1.id
+}
