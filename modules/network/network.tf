@@ -211,5 +211,11 @@ output "pub_sub_1" {
   value = aws_subnet.public_subnet_1.id
 }
 output "pub_sub_2" {
-  value = aws_subnet.public_subnet_1.id
+  value = aws_subnet.public_subnet_2.id
+}
+output "frontend_sg" {
+  value = aws_security_group.allow_http.id
+}
+output "vpc_id" {
+  value = aws_vpc.main.id
 }

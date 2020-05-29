@@ -1,5 +1,29 @@
 ## Terraform ecs resource creation
 
+resource "aws_security_group" "ecs_allow_http" {
+  name        = "ecs_allow_http"
+  description = "Allow http inbound traffic"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    description = "HTTP from public subnets"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    security_groups = [var.frontend_sg]
+  }
+  egress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Environment = var.target_env
+    Name = var.stack_name
+  }
+}
+
 ## ECR creation
 resource "aws_ecr_repository" "ECSRepo" {
   name  = "myrepo"
@@ -26,7 +50,10 @@ resource "aws_ecs_cluster" "main" {
 ## Task definition creation
 resource "aws_ecs_task_definition" "nginx" {
   family = "nginx"
-  network_mode = aws_vpc
+  network_mode = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu = "1024"
+  memory = "2048"
   tags = {
     Environment = var.target_env
     Name = var.stack_name
@@ -55,10 +82,10 @@ resource "aws_ecs_service" "nginx" {
   name = "nginx"
   cluster  = aws_ecs_cluster.main.id
   desired_count = 2
-  launch_type = FARGATE
-  network_configuration = {
+  launch_type = "FARGATE"
+  network_configuration {
     subnets = [var.pub_sub_1, var.pub_sub_2]
-    security_groups = []
+    security_groups = [aws_security_group.ecs_allow_http.id]
     assign_public_ip = false
   }
 

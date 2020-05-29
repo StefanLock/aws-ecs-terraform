@@ -15,6 +15,8 @@ module "network" {
 ## ECS configuration
 module "ecs" {
   source = "../../modules/ecs"
-	pub_sub_1 = module.network.pub_sub_1
-	pub_sub_2 = module.network.pub_sub_2
+  pub_sub_1 = module.network.pub_sub_1
+  pub_sub_2 = module.network.pub_sub_2
+	frontend_sg = module.network.frontend_sg
+	vpc_id = module.network.vpc_id
 }
